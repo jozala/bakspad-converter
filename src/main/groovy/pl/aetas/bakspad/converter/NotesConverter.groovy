@@ -35,7 +35,8 @@ class NotesConverter {
         def converter = new NotesConverter(dataDirectory)
         converter.backupDataFiles(FileSystems.getDefault().getPath("data-backup"))
         LOGGER.info("Converting \\\\n to <br /> started")
-        converter.processNotesAsString(replaceNewLineWithHtmlBrTag)
+//        converter.processNotesAsString(replaceNewLineWithHtmlBrTag)
+        converter.processNotesAsString { addTextToHtmlHeadIfNotExistsYet("<style>p { margin-top: 0; margin-bottom: 0; }</style>") }
         LOGGER.info("Converting \\\\n to <br /> finished")
 
     }
@@ -51,8 +52,17 @@ class NotesConverter {
         LOGGER.info("Backup completed")
     }
 
-    static def Closure replaceNewLineWithHtmlBrTag = {
+    static Closure replaceNewLineWithHtmlBrTag = {
          String text -> text.replaceAll("\\\\n", '<br />')
+    }
+
+    static Closure addTextToHtmlHeadIfNotExistsYet(String textToAdd) {
+        { String text ->
+            String head = text.substring(text.indexOf('<head>'), text.indexOf('</head>'))
+            if (!head.contains(textToAdd)) {
+                text.replace('</head>', "$textToAdd </head>")
+            }
+        }
     }
 
 }
